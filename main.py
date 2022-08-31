@@ -9,6 +9,7 @@ import re
 WEBSITE = "http://books.toscrape.com/"
 # type the book of url book
 urlbook = "http://books.toscrape.com/catalogue/tipping-the-velvet_999/index.html"
+#urlbook = "http://books.toscrape.com/catalogue/a-flight-of-arrows-the-pathfinders-2_876/index.html"
 
 HEADER_CSV = ["product_page_url","universal_ product_code (upc)","title","price_including_tax","price_excluding_tax",
               "number_available","product_description","category","review_rating","image_url"]
@@ -47,7 +48,11 @@ def analyze_url_book(url,col_url,cols):
     page = rq.get(url)
 
     soup = bs(page.content, 'html.parser')
-    #print(soup.find_all('li'))
+   # print(soup.find_all('ul',class_="breadcrumb"))
+    #print(soup.find_all('p', class_="star-rating"))
+    print(soup.find("meta",  attrs={'name':'description'}).get('content'))
+
+    # upc ,price , number available
     th = soup.find_all('th')
     td = soup.find_all('td')
     # add url
@@ -55,7 +60,8 @@ def analyze_url_book(url,col_url,cols):
     # add UPC
     simple_line.append(search_col(th, td, col_url, cols, 1))
     # add title
-    h1 = soup.find_all('h1')
+    #h1 = soup.find_all('h1')
+    h1 = soup.find_all('li', class_="active")
     for title in h1:
         simple_line.append(title.string)
     # add price_excluding_tax
@@ -65,6 +71,17 @@ def analyze_url_book(url,col_url,cols):
     # add number_available
     nbr_books = search_col(th, td, col_url, cols, 5)
     simple_line.append(re.sub("[^0-9]", "", nbr_books))
+    # add description
+    simple_line.append(soup.find("meta",  attrs={'name':'description'}).get('content'))
+    # add category
+    categ = soup.find_all('a', href=True)  # category
+    i = 1
+    for title in categ:
+        if i == 4:
+            simple_line.append(title.string)
+            break
+        else:
+            i = i + 1
 
     return simple_line
 
