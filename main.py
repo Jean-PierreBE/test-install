@@ -24,7 +24,7 @@ COLUMNS_URL = {"universal_ product_code (upc)" :"UPC",
                "review_rating" : "Number of reviews",
                "image_url" : "image_container"}
 
-# Fonctions
+# Fonctions azerty
 def search_col(th,td,col_url,cols,ind):
     str = ""
     i = 0
