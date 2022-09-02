@@ -119,5 +119,5 @@ if __name__ == '__main__':
 
     for urlcategory in URLCATEGORY:
         df_category.loc[len(df_book)] = analyze_url_category(urlcategory, COLUMNS_URL, HEADER_CSV)
-    # create csv
-    df_category.to_csv('books.csv', index=False, sep=';', encoding='utf-8')
+        # create csv
+        df_category.to_csv('books.csv', index=False, sep=';', encoding='utf-8')
