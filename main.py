@@ -4,10 +4,14 @@ import requests as rq
 #import AnalizeWeb as aw
 from bs4 import BeautifulSoup as bs
 from urllib.error import HTTPError
+import urllib.request as rql
+
 import re
 
 # Variables
 WEBSITE = "http://books.toscrape.com/"
+SAVE_IMAGES = "C:/Users/stein/PycharmProjects/AnalyseMarche/Images/"
+SAVE_BOOKS = "C:/Users/stein/PycharmProjects/AnalyseMarche/Books/"
 # type the book of url book
 URLBOOK = ["http://books.toscrape.com/catalogue/tipping-the-velvet_999/index.html",
            "http://books.toscrape.com/catalogue/a-flight-of-arrows-the-pathfinders-2_876/index.html",
@@ -28,6 +32,13 @@ COLUMNS_URL = {"universal_ product_code (upc)" :"UPC",
                "image_url" : "image_container"}
 
 # Fonctions
+# download image and save it on the disk
+def download_image(url, file_path, file_name):
+    full_path = file_path + file_name + '.jpeg'
+    #full_path = file_path + file_name
+    rql.urlretrieve(url, full_path)
+
+# creation dictionnary with title of category and url
 def list_category(url):
     list_cat = {}
     page = rq.get(url)
@@ -59,6 +70,7 @@ def search_col(th,td,col_url,cols,ind):
             j = j + 1
     return str
 
+# Analize webpage of one book
 def analyze_url_book(url,col_url,cols):
     simple_line = []
     page = rq.get(url)
@@ -66,7 +78,6 @@ def analyze_url_book(url,col_url,cols):
     soup = bs(page.content, 'html.parser')
     # print(soup.find_all('ul',class_="breadcrumb"))
     #print(soup.find('p', class_="star-rating"))
-    #print(soup.find_all('div', 'thumbnail'))
     for div in soup.find_all('div', 'thumbnail'):
         img = div.find('img', alt=True)
     # upc ,price , number available
@@ -99,11 +110,18 @@ def analyze_url_book(url,col_url,cols):
     # add review rating
     simple_line.append(search_col(th, td, col_url, cols, 8))
     # add url image
-    simple_line.append(img['src'].replace("../../",WEBSITE))
-
+    url_image = img['src'].replace("../../",WEBSITE)
+    simple_line.append(url_image)
+    # download image on the disk
+    try:
+        download_image(url_image, SAVE_IMAGES, img['alt'])
+        #print(url_image + ' ' + img['alt'])
+    except :
+        print(img['alt'])
+        pass
     return simple_line
 
-# analyze category
+# Analize webpage for one category
 def analyze_url_category(cat,url,col_url,cols):
     df_category = pd.DataFrame(columns=cols)
     page = rq.get(url)
@@ -113,7 +131,7 @@ def analyze_url_category(cat,url,col_url,cols):
         for h3 in h.find_all('h3'):
             for a in h3.find_all('a', href=True):
                 df_category.loc[len(df_category)] = analyze_url_book(a.get("href").replace("../../../",WEBSITE + "catalogue/").strip(), col_url,cols)
-    df_category.to_csv(cat + '.csv', index=False, sep=';', encoding='utf-8')
+    df_category.to_csv(SAVE_BOOKS+ cat + '.csv', index=False, sep=';', encoding='utf-8')
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
