@@ -4,6 +4,7 @@ import requests as rq
 from bs4 import BeautifulSoup as bs
 from urllib.error import HTTPError
 import re
+import logging
 
 # Variables
 WEBSITE = "http://books.toscrape.com/"

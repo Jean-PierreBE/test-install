@@ -5,13 +5,14 @@ import requests as rq
 from bs4 import BeautifulSoup as bs
 from urllib.error import HTTPError
 import urllib.request as rql
-
+import socket as sk
+import logging
 import re
 
 # Variables
 WEBSITE = "http://books.toscrape.com/"
-SAVE_IMAGES = "C:/Users/stein/PycharmProjects/AnalyseMarche/Images/"
-SAVE_BOOKS = "C:/Users/stein/PycharmProjects/AnalyseMarche/Books/"
+SAVE_IMAGES = "C:/openclassroom/Python/P2/Images/"
+SAVE_BOOKS = "C:/openclassroom/Python/P2/Books/"
 # type the book of url book
 URLBOOK = ["http://books.toscrape.com/catalogue/tipping-the-velvet_999/index.html",
            "http://books.toscrape.com/catalogue/a-flight-of-arrows-the-pathfinders-2_876/index.html",
@@ -35,7 +36,6 @@ COLUMNS_URL = {"universal_ product_code (upc)" :"UPC",
 # download image and save it on the disk
 def download_image(url, file_path, file_name):
     full_path = file_path + file_name + '.jpeg'
-    #full_path = file_path + file_name
     rql.urlretrieve(url, full_path)
 
 # creation dictionnary with title of category and url
@@ -70,14 +70,23 @@ def search_col(th,td,col_url,cols,ind):
             j = j + 1
     return str
 
+# find number of pages
+def det_nbr_pages(soup):
+    nb_page = 1
+    data1 = soup.find('ul', class_="pager")
+
+    if data1:
+        for li in data1.find_all("li"):
+            return int(re.sub("[^2-9]", "", li.text.strip()))
+    else:
+        return nb_page
+
 # Analize webpage of one book
 def analyze_url_book(url,col_url,cols):
     simple_line = []
     page = rq.get(url)
 
     soup = bs(page.content, 'html.parser')
-    # print(soup.find_all('ul',class_="breadcrumb"))
-    #print(soup.find('p', class_="star-rating"))
     for div in soup.find_all('div', 'thumbnail'):
         img = div.find('img', alt=True)
     # upc ,price , number available
@@ -115,9 +124,10 @@ def analyze_url_book(url,col_url,cols):
     # download image on the disk
     try:
         download_image(url_image, SAVE_IMAGES, img['alt'])
-        #print(url_image + ' ' + img['alt'])
+        #sk.setdefaulttimeout(time=10)
+        print(url_image)
     except :
-        print(img['alt'])
+        logging.error('Unable to write image of ' + img['alt'])
         pass
     return simple_line
 
@@ -127,14 +137,29 @@ def analyze_url_category(cat,url,col_url,cols):
     page = rq.get(url)
 
     soup = bs(page.content, 'html.parser')
-    for h in soup.find_all('article', class_="product_pod"):
-        for h3 in h.find_all('h3'):
-            for a in h3.find_all('a', href=True):
-                df_category.loc[len(df_category)] = analyze_url_book(a.get("href").replace("../../../",WEBSITE + "catalogue/").strip(), col_url,cols)
-    df_category.to_csv(SAVE_BOOKS+ cat + '.csv', index=False, sep=';', encoding='utf-8')
+
+    nb_page = det_nbr_pages(soup)
+    # only one page , we keep the url
+    if nb_page == 1:
+        for h in soup.find_all('article', class_="product_pod"):
+            for h3 in h.find_all('h3'):
+                for a in h3.find_all('a', href=True):
+                    df_category.loc[len(df_category)] = analyze_url_book(a.get("href").replace("../../../",WEBSITE + "catalogue/").strip(), col_url,cols)
+    else:
+        nmax = nb_page + 1
+        for n in range(1,nmax):
+            new_url = url.replace("index","page-" + str(n))
+            page = rq.get(new_url)
+            soup = bs(page.content, 'html.parser')
+            for h in soup.find_all('article', class_="product_pod"):
+                for h3 in h.find_all('h3'):
+                    for a in h3.find_all('a', href=True):
+                        df_category.loc[len(df_category)] = analyze_url_book(a.get("href").replace("../../../", WEBSITE + "catalogue/").strip(), col_url, cols)
+    #df_category.to_csv(SAVE_BOOKS+ cat + '.csv', index=False, sep=';', encoding='utf-8')
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+    logging.basicConfig(filename='LogWebScrapping.log', encoding='utf-8', level=logging.ERROR)
     try:
         page = rq.get(WEBSITE)
         page.raise_for_status()
@@ -149,10 +174,9 @@ if __name__ == '__main__':
     # create csv
     df_book.to_csv('books.csv', index=False,sep=';', encoding='utf-8')
 
+    # create csv for every category
     lst_cat = list_category(WEBSITE)
-    #for k, v in lst_cat.items():
-    #    print(k, v)
-    #analyze_url_category("Mystery",lst_cat["Mystery"], COLUMNS_URL, HEADER_CSV)
+    #analyze_url_category("Travel", lst_cat["Travel"], COLUMNS_URL, HEADER_CSV)
     for k, v in lst_cat.items():
         analyze_url_category(k,v, COLUMNS_URL, HEADER_CSV)
 
