@@ -52,7 +52,7 @@ def analyze_url_book(url,col_url,cols):
     page = rq.get(url)
 
     soup = bs(page.content, 'html.parser')
-    # print(soup.find_all('ul',class_="breadcrumb"))
+    # print(soup.find_all('ul',class_="breadcrumb")) jp
     #print(soup.find('p', class_="star-rating"))
     for div in soup.find_all('div', 'thumbnail'):
         img = div.find('img', alt=True)

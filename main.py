@@ -33,7 +33,7 @@ COLUMNS_URL = {"universal_ product_code (upc)" :"UPC",
                "image_url" : "image_container"}
 
 # Fonctions
-# download image and save it on the disk
+# download image and save it on the disk jps
 def download_image(url, file_path, file_name):
     full_path = file_path + file_name + '.jpeg'
     rql.urlretrieve(url, full_path)
