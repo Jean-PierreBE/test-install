@@ -1,24 +1,46 @@
 # Importations packages
 import requests as rq
 import AnalizeWeb as aw
-from urllib.error import HTTPError
 import logging
+import json
+import sys
 
 
 # Variables
-WEBSITE = "http://books.toscrape.com/"
-SAVE_IMAGES = "C:/openclassroom/Python/P2/Images/"
-SAVE_BOOKS = "C:/openclassroom/Python/P2/Books/"
+PARAM = "parameters.txt"
+
+def load_libel():
+    f = open(PARAM, "r")
+    # Reading from file
+    dataj = json.loads(f.read())
+
+    return dataj
+
+def main(argv):
+    logging.basicConfig(filename='LogWebScrapping.log', encoding='utf-8', level=logging.ERROR)
+    # load parameters
+    datalib = load_libel()
+
+    WEBSITE = datalib["Website"]["BookScrap"]
+    SAVE_IMAGES = datalib["Directory"]["Images"]
+    SAVE_BOOKS = datalib["Directory"]["Books"]
+
+    page = rq.get(WEBSITE)
+    if page.status_code == 200:
+        lst_cat = aw.list_category(WEBSITE)
+        if argv[1] == "all":
+            for k, v in lst_cat.items():
+              aw.analyze_url_category(k,v, aw.COLUMNS_URL, aw.HEADER_CSV)
+            print("all csv files have been created in directory " + SAVE_BOOKS)
+        else:
+            try:
+                if lst_cat[argv[1]]:
+                    aw.analyze_url_category(argv[1], lst_cat[argv[1]], aw.COLUMNS_URL, aw.HEADER_CSV)
+                    print("csv file for the category '" + argv[1] + "' has been created in directory " + SAVE_BOOKS)
+            except:
+                print("category " + argv[1] + " doesn't exist")
+    else:
+        print("error acces website " + WEBSITE + " : " + str(page.status_code))
 
 if __name__ == '__main__':
-    logging.basicConfig(filename='LogWebScrapping.log', encoding='utf-8', level=logging.ERROR)
-    try:
-        page = rq.get(WEBSITE)
-        page.raise_for_status()
-    except HTTPError as hp:
-        print(hp)
-
-    lst_cat = aw.list_category(WEBSITE)
-    aw.analyze_url_category("Fiction", lst_cat["Fiction"], aw.COLUMNS_URL, aw.HEADER_CSV)
-    #for k, v in lst_cat.items():
-        #aw.analyze_url_category(k,v, aw.COLUMNS_URL, aw.HEADER_CSV)
+    main(sys.argv)

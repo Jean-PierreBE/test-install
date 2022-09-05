@@ -10,11 +10,6 @@ import re
 WEBSITE = "http://books.toscrape.com/"
 SAVE_IMAGES = "C:/openclassroom/Python/P2/Images/"
 SAVE_BOOKS = "C:/openclassroom/Python/P2/Books/"
-# type the book of url book
-URLBOOK = ["http://books.toscrape.com/catalogue/tipping-the-velvet_999/index.html",
-           "http://books.toscrape.com/catalogue/a-flight-of-arrows-the-pathfinders-2_876/index.html",
-           "http://books.toscrape.com/catalogue/the-bachelor-girls-guide-to-murder-herringford-and-watts-mysteries-1_491/index.html",
-           "http://books.toscrape.com/catalogue/sharp-objects_997/index.html"]
 
 HEADER_CSV = ["product_page_url","universal_ product_code (upc)","title","price_including_tax (£)","price_excluding_tax (£)",
               "number_available","product_description","category","review_rating","image_url"]
@@ -119,13 +114,13 @@ def analyze_url_book(url,col_url,cols):
     url_image = img['src'].replace("../../",WEBSITE)
     simple_line.append(url_image)
     # download image on the disk
-    try:
-        download_image(url_image, SAVE_IMAGES, img['alt'])
+    #try:
+        #download_image(url_image, SAVE_IMAGES, img['alt'])
         #sk.setdefaulttimeout(time=10)
         #print(url_image)
-    except :
-        logging.error('Unable to write image of ' + img['alt'])
-        pass
+    #except :
+        #logging.error('Unable to write image of ' + img['alt'])
+        #pass
     return simple_line
 
 # Analize webpage for one category

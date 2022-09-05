@@ -1,0 +1,4 @@
+{
+"Website":{"BookScrap": "http://books.toscrape.com/"},
+"Directory":{"Books": "C:/openclassroom/Python/P2/Books/", "Images": "C:/openclassroom/Python/P2/Images/"}
+}
