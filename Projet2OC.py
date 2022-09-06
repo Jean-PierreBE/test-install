@@ -30,12 +30,12 @@ def main(argv):
         lst_cat = aw.list_category(WEBSITE)
         if argv[1] == "all":
             for k, v in lst_cat.items():
-              aw.analyze_url_category(k,v, aw.COLUMNS_URL, aw.HEADER_CSV)
+              aw.analyze_url_category(k,v, WEBSITE, SAVE_BOOKS, SAVE_IMAGES)
             print("all csv files have been created in directory " + SAVE_BOOKS)
         else:
             try:
                 if lst_cat[argv[1]]:
-                    aw.analyze_url_category(argv[1], lst_cat[argv[1]], aw.COLUMNS_URL, aw.HEADER_CSV)
+                    aw.analyze_url_category(argv[1], lst_cat[argv[1]], WEBSITE, SAVE_BOOKS, SAVE_IMAGES)
                     print("csv file for the category '" + argv[1] + "' has been created in directory " + SAVE_BOOKS)
             except:
                 print("category " + argv[1] + " doesn't exist")

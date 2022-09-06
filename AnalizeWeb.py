@@ -4,12 +4,9 @@ import requests as rq
 from bs4 import BeautifulSoup as bs
 import urllib.request as rql
 import logging
+import shutil
+from PIL import Image
 import re
-
-# Variables
-WEBSITE = "http://books.toscrape.com/"
-SAVE_IMAGES = "C:/openclassroom/Python/P2/Images/"
-SAVE_BOOKS = "C:/openclassroom/Python/P2/Books/"
 
 HEADER_CSV = ["product_page_url","universal_ product_code (upc)","title","price_including_tax (£)","price_excluding_tax (£)",
               "number_available","product_description","category","review_rating","image_url"]
@@ -26,9 +23,26 @@ COLUMNS_URL = {"universal_ product_code (upc)" :"UPC",
 
 # Fonctions
 # download image and save it on the disk jps
-def download_image(url, file_path, file_name):
+def download_image1(url, file_path, file_name):
     full_path = file_path + file_name + '.jpeg'
     rql.urlretrieve(url, full_path)
+
+def download_image2(url, file_path, file_name):
+    full_path = file_path + file_name + '.jpeg'
+    response = rq.get(url)
+    f = open(full_path, 'wb')
+    f.write(response.content)
+def download_image3(url, file_path, file_name):
+    full_path = file_path + file_name + '.jpeg'
+    response = rql.urlopen(url)
+    f = open(full_path, 'wb')
+    shutil.copyfileobj(response, f)
+
+def download_image(url, file_path, file_name):
+    full_path = file_path + file_name + '.jpg'
+    response = rql.urlopen(url)
+    image = Image.open(response)
+    image.save(full_path)
 
 # creation dictionnary with title of category and url
 def list_category(url):
@@ -44,11 +58,11 @@ def list_category(url):
 
     return list_cat
 
-def search_col(th,td,col_url,cols,ind):
+def search_col(th,td,ind):
     str = ""
     i = 0
     for t in th:
-        if col_url[cols[ind]] == t.string:
+        if COLUMNS_URL[HEADER_CSV[ind]] == t.string:
             break
         else:
             i = i + 1
@@ -74,7 +88,7 @@ def det_nbr_pages(soup):
         return nb_page
 
 # Analize webpage of one book
-def analyze_url_book(url,col_url,cols):
+def analyze_url_book(url,siteweb,dirimages):
     simple_line = []
     page = rq.get(url)
 
@@ -87,15 +101,15 @@ def analyze_url_book(url,col_url,cols):
     # add url
     simple_line.append(url)
     # add UPC
-    simple_line.append(search_col(th, td, col_url, cols, 1))
+    simple_line.append(search_col(th, td, 1))
     # add title
     simple_line.append(img['alt'])
     # add price_excluding_tax
-    simple_line.append(search_col(th, td, col_url, cols, 4).replace("£",''))
+    simple_line.append(search_col(th, td,  4).replace("£",''))
     # add price_including_tax
-    simple_line.append(search_col(th, td, col_url, cols, 3).replace("£",''))
+    simple_line.append(search_col(th, td, 3).replace("£",''))
     # add number_available
-    nbr_books = search_col(th, td, col_url, cols, 5)
+    nbr_books = search_col(th, td, 5)
     simple_line.append(re.sub("[^0-9]", "", nbr_books))
     # add description
     simple_line.append(soup.find("meta",  attrs={'name':'description'}).get('content').strip())
@@ -109,13 +123,13 @@ def analyze_url_book(url,col_url,cols):
         else:
             i = i + 1
     # add review rating
-    simple_line.append(search_col(th, td, col_url, cols, 8))
+    simple_line.append(search_col(th, td, 8))
     # add url image
-    url_image = img['src'].replace("../../",WEBSITE)
+    url_image = img['src'].replace("../../",siteweb)
     simple_line.append(url_image)
     # download image on the disk
     #try:
-        #download_image(url_image, SAVE_IMAGES, img['alt'])
+        #download_image(url_image, dirimages, img['alt'])
         #sk.setdefaulttimeout(time=10)
         #print(url_image)
     #except :
@@ -124,8 +138,8 @@ def analyze_url_book(url,col_url,cols):
     return simple_line
 
 # Analize webpage for one category
-def analyze_url_category(cat,url,col_url,cols):
-    df_category = pd.DataFrame(columns=cols)
+def analyze_url_category(cat,url,siteweb,dirbooks,dirimages):
+    df_category = pd.DataFrame(columns=HEADER_CSV)
     page = rq.get(url)
 
     soup = bs(page.content, 'html.parser')
@@ -136,7 +150,7 @@ def analyze_url_category(cat,url,col_url,cols):
         for h in soup.find_all('article', class_="product_pod"):
             for h3 in h.find_all('h3'):
                 for a in h3.find_all('a', href=True):
-                    df_category.loc[len(df_category)] = analyze_url_book(a.get("href").replace("../../../",WEBSITE + "catalogue/").strip(), col_url,cols)
+                    df_category.loc[len(df_category)] = analyze_url_book(a.get("href").replace("../../../",siteweb + "catalogue/").strip(),siteweb,dirimages)
     else:
         nmax = nb_page + 1
         for n in range(1,nmax):
@@ -146,5 +160,5 @@ def analyze_url_category(cat,url,col_url,cols):
             for h in soup.find_all('article', class_="product_pod"):
                 for h3 in h.find_all('h3'):
                     for a in h3.find_all('a', href=True):
-                        df_category.loc[len(df_category)] = analyze_url_book(a.get("href").replace("../../../", WEBSITE + "catalogue/").strip(), col_url, cols)
-    df_category.to_csv(SAVE_BOOKS+ cat + '.csv', index=False, sep=';', encoding='utf-8')
+                        df_category.loc[len(df_category)] = analyze_url_book(a.get("href").replace("../../../", siteweb + "catalogue/").strip(),siteweb,dirimages)
+    df_category.to_csv(dirbooks + cat + '.csv', index=False, sep=';', encoding='utf-8')
