@@ -4,8 +4,9 @@ import requests as rq
 from bs4 import BeautifulSoup as bs
 import urllib.request as rql
 import logging
-import shutil
-from PIL import Image
+from pathlib import Path
+#import shutil
+#from PIL import Image
 import re
 
 HEADER_CSV = ["product_page_url","universal_ product_code (upc)","title","price_including_tax (£)","price_excluding_tax (£)",
@@ -22,27 +23,18 @@ COLUMNS_URL = {"universal_ product_code (upc)" :"UPC",
                "image_url" : "image_container"}
 
 # Fonctions
-# download image and save it on the disk jps
-def download_image1(url, file_path, file_name):
-    full_path = file_path + file_name + '.jpeg'
-    rql.urlretrieve(url, full_path)
+# download image and save it on the disk
+def erase_char(wtext):
+    list_of_char = [':', '/', '*','"','?']
+    str = wtext
+    for char in list_of_char:
+        str = str.replace(char," ")
+    return str
 
-def download_image2(url, file_path, file_name):
-    full_path = file_path + file_name + '.jpeg'
-    response = rq.get(url)
-    f = open(full_path, 'wb')
-    f.write(response.content)
-def download_image3(url, file_path, file_name):
-    full_path = file_path + file_name + '.jpeg'
-    response = rql.urlopen(url)
-    f = open(full_path, 'wb')
-    shutil.copyfileobj(response, f)
 
 def download_image(url, file_path, file_name):
-    full_path = file_path + file_name + '.jpg'
-    response = rql.urlopen(url)
-    image = Image.open(response)
-    image.save(full_path)
+    full_path = file_path + '/' + file_name + '.jpeg'
+    rql.urlretrieve(url, full_path)
 
 # creation dictionnary with title of category and url
 def list_category(url):
@@ -128,13 +120,12 @@ def analyze_url_book(url,siteweb,dirimages):
     url_image = img['src'].replace("../../",siteweb)
     simple_line.append(url_image)
     # download image on the disk
-    #try:
-        #download_image(url_image, dirimages, img['alt'])
-        #sk.setdefaulttimeout(time=10)
-        #print(url_image)
-    #except :
-        #logging.error('Unable to write image of ' + img['alt'])
-        #pass
+    try:
+        name_file = erase_char(img['alt'])
+        download_image(url_image, dirimages, name_file)
+    except :
+        logging.error('Unable to write image of ' + name_file)
+        pass
     return simple_line
 
 # Analize webpage for one category
@@ -143,22 +134,26 @@ def analyze_url_category(cat,url,siteweb,dirbooks,dirimages):
     page = rq.get(url)
 
     soup = bs(page.content, 'html.parser')
-
+    # logging begin analize category
+    logging.info("begin loading category " + cat)
+    # create or check if directories for images exists
+    new_dir = dirimages + "/" + cat
+    Path(new_dir).mkdir(parents=True, exist_ok=True)
+    # find number of pages
     nb_page = det_nbr_pages(soup)
     # only one page , we keep the url
-    if nb_page == 1:
+    nmax = nb_page + 1
+
+    for n in range(1,nmax):
+        if nmax > 2:
+            new_url = url.replace("index", "page-" + str(n))
+            page = rq.get(new_url)
+            soup = bs(page.content, 'html.parser')
+
         for h in soup.find_all('article', class_="product_pod"):
             for h3 in h.find_all('h3'):
                 for a in h3.find_all('a', href=True):
-                    df_category.loc[len(df_category)] = analyze_url_book(a.get("href").replace("../../../",siteweb + "catalogue/").strip(),siteweb,dirimages)
-    else:
-        nmax = nb_page + 1
-        for n in range(1,nmax):
-            new_url = url.replace("index","page-" + str(n))
-            page = rq.get(new_url)
-            soup = bs(page.content, 'html.parser')
-            for h in soup.find_all('article', class_="product_pod"):
-                for h3 in h.find_all('h3'):
-                    for a in h3.find_all('a', href=True):
-                        df_category.loc[len(df_category)] = analyze_url_book(a.get("href").replace("../../../", siteweb + "catalogue/").strip(),siteweb,dirimages)
+                    df_category.loc[len(df_category)] = analyze_url_book(a.get("href").replace("../../../", siteweb + "catalogue/").strip(),siteweb,new_dir)
+
     df_category.to_csv(dirbooks + cat + '.csv', index=False, sep=';', encoding='utf-8')
+    logging.info("end loading category " + cat)

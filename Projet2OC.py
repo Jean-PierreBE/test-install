@@ -17,7 +17,7 @@ def load_libel():
     return dataj
 
 def main(argv):
-    logging.basicConfig(filename='LogWebScrapping.log', encoding='utf-8', level=logging.ERROR)
+    logging.basicConfig(filename='LogWebScrapping.log', encoding='utf-8', level=logging.INFO)
     # load parameters
     datalib = load_libel()
 
