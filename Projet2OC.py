@@ -5,7 +5,6 @@ import logging
 import json
 import sys
 
-
 # Variables
 PARAM = "parameters.txt"
 
@@ -18,6 +17,7 @@ def load_libel():
 
 def main(argv):
     logging.basicConfig(filename='LogWebScrapping.log', encoding='utf-8', level=logging.INFO)
+
     # load parameters
     datalib = load_libel()
 
@@ -25,12 +25,15 @@ def main(argv):
     SAVE_IMAGES = datalib["Directory"]["Images"]
     SAVE_BOOKS = datalib["Directory"]["Books"]
 
+    logging.info("Start of " + argv[0] + " on " + aw.DateNow() + " at " + aw.TimeNow())
     page = rq.get(WEBSITE)
     if page.status_code == 200:
         lst_cat = aw.list_category(WEBSITE)
-        if argv[1] == "all":
-            for k, v in lst_cat.items():
-              aw.analyze_url_category(k,v, WEBSITE, SAVE_BOOKS, SAVE_IMAGES)
+        if len(argv) == 1:
+            print("Please type a category or 'all' ")
+        elif argv[1] == "all":
+            for Name_Category, Url_Category in lst_cat.items():
+                aw.analyze_url_category(Name_Category,Url_Category, WEBSITE, SAVE_BOOKS, SAVE_IMAGES)
             print("all csv files have been created in directory " + SAVE_BOOKS)
         else:
             try:
@@ -41,6 +44,7 @@ def main(argv):
                 print("category " + argv[1] + " doesn't exist")
     else:
         print("error acces website " + WEBSITE + " : " + str(page.status_code))
-
+    # end of the program
+    logging.info("End of " + argv[0] + " on " + aw.DateNow() + " at " + aw.TimeNow())
 if __name__ == '__main__':
     main(sys.argv)
