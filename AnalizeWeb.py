@@ -77,7 +77,6 @@ def search_col(th,td,indtab):
 
 # find number of star
 def Find_Star(soup):
-    nbre_star = 0
     lst_star = {"One" : 1,"Two" : 2,"Three" : 3,"Four" : 4,"Five" : 5}
     stars = soup.find('p', class_="star-rating")
 
