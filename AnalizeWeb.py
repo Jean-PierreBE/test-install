@@ -6,20 +6,17 @@ import urllib.request as rql
 import logging
 from pathlib import Path
 import re
+import os
 import datetime as dt
 
 HEADER_CSV = ["product_page_url","universal_ product_code (upc)","title","price_including_tax (£)","price_excluding_tax (£)",
               "number_available","product_description","category","review_rating","image_url"]
 
 COLUMNS_URL = {"universal_ product_code (upc)" :"UPC",
-                 "title" : "col-sm-6 product_main",
-                 "price_including_tax (£)" : "Price (incl. tax)",
-                 "price_excluding_tax (£)" : "Price (excl. tax)",
-                 "number_available" : "Availability",
-                 "product_description" : "Product Description",
-                 "category" : "books.toscrape.com/catalogue/category/books/",
-                 "review_rating" : "Number of reviews",
-                 "image_url" : "image_container"}
+               "price_including_tax (£)" : "Price (incl. tax)",
+               "price_excluding_tax (£)" : "Price (excl. tax)",
+               "number_available" : "Availability"
+               }
 
 # Fonctions
 def erase_char(wtext):
@@ -39,6 +36,10 @@ def TimeNow():
     Time_J = dt.datetime.now()
     return Time_J.strftime("%X")
 
+# count files in a directory
+def count_files_dir(dir_path):
+    return len([entry for entry in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, entry))])
+
 # Download pictures on the disk
 def download_image(url, file_path, file_name):
     full_path = file_path + '/' + file_name + '.jpeg'
@@ -50,26 +51,26 @@ def list_category(url):
     page = rq.get(url)
 
     soup = bs(page.content, 'html.parser')
-    for h in soup.find_all('div', class_="side_categories"):
-        for a in h.find_all('a', href=True):
-            if a.text.strip() != "Books":
-                list_cat[a.text.strip()] = url + a.get("href").strip()
+    for hcat in soup.find_all('div', class_="side_categories"):
+        for alib in hcat.find_all('a', href=True):
+            if alib.text.strip() != "Books":
+                list_cat[alib.text.strip()] = url + alib.get("href").strip()
 
     return list_cat
 
 def search_col(th,td,indtab):
     str = ""
     ind = 0
-    for t in th:
-        if COLUMNS_URL[HEADER_CSV[indtab]] == t.string:
+    for tabcsv in th:
+        if COLUMNS_URL[HEADER_CSV[indtab]] == tabcsv.string:
             break
         else:
             ind = ind + 1
 
     jnd = 0
-    for t1 in td:
+    for tabval in td:
         if jnd == ind:
-            str = t1.string
+            str = tabval.string
             break
         else:
             jnd = jnd + 1
@@ -87,14 +88,13 @@ def Find_Star(soup):
 
 # find number of pages
 def det_nbr_pages(soup):
-    nb_page = 1
     data1 = soup.find('ul', class_="pager")
 
     if data1:
         for li in data1.find_all("li"):
             return int(re.sub("[^2-9]", "", li.text.strip()))
     else:
-        return nb_page
+        return 1
 
 # Analize webpage of one book
 def analyze_url_book(url,siteweb,dirimages):
@@ -104,20 +104,20 @@ def analyze_url_book(url,siteweb,dirimages):
     for div in soup.find_all('div', 'thumbnail'):
         img = div.find('img', alt=True)
     # upc ,price , number available
-    th = soup.find_all('th')
-    td = soup.find_all('td')
+    th_col_csv = soup.find_all('th')
+    td_val_csv = soup.find_all('td')
     # add url
     simple_line.append(url)
     # add UPC
-    simple_line.append(search_col(th, td, 1))
+    simple_line.append(search_col(th_col_csv, td_val_csv, 1))
     # add title
     simple_line.append(img['alt'])
     # add price_excluding_tax
-    simple_line.append(search_col(th, td,  4).replace("£",''))
+    simple_line.append(search_col(th_col_csv, td_val_csv,  4).replace("£",''))
     # add price_including_tax
-    simple_line.append(search_col(th, td, 3).replace("£",''))
+    simple_line.append(search_col(th_col_csv, td_val_csv, 3).replace("£",''))
     # add number_available
-    nbr_books = search_col(th, td, 5)
+    nbr_books = search_col(th_col_csv, td_val_csv, 5)
     simple_line.append(re.sub("[^0-9]", "", nbr_books))
     # add description
     simple_line.append(soup.find("meta",  attrs={'name':'description'}).get('content').strip())
@@ -153,24 +153,30 @@ def analyze_url_category(cat,url,siteweb,dirbooks,dirimages):
     # logging begin analize category
     logging.info("begin loading category " + cat + " at " + TimeNow())
     # create or check if directories for images exists
-    new_dir = dirimages + "/" + cat
-    Path(new_dir).mkdir(parents=True, exist_ok=True)
+    new_dirimg = dirimages + "/" + cat
+    Path(new_dirimg).mkdir(parents=True, exist_ok=True)
     # find number of pages
     nb_page = det_nbr_pages(soup)
     # only one page , we keep the url
     nmax = nb_page + 1
     nb_books = 0
-    for n in range(1,nmax):
+    for npage in range(1,nmax):
         if nmax > 2:
-            new_url = url.replace("index", "page-" + str(n))
+            new_url = url.replace("index", "page-" + str(npage))
             page = rq.get(new_url)
             soup = bs(page.content, 'html.parser')
 
-        for h in soup.find_all('article', class_="product_pod"):
-            for h3 in h.find_all('h3'):
-                for a in h3.find_all('a', href=True):
-                    df_category.loc[len(df_category)] = analyze_url_book(a.get("href").replace("../../../", siteweb + "catalogue/").strip(),siteweb,new_dir)
+        for hbook in soup.find_all('article', class_="product_pod"):
+            for h3book in hbook.find_all('h3'):
+                for abook in h3book.find_all('a', href=True):
+                    df_category.loc[len(df_category)] = analyze_url_book(abook.get("href").replace("../../../", siteweb + "catalogue/").strip(),siteweb,new_dirimg)
                     nb_books = nb_books + 1
+    # count number of images
+    nb_images = count_files_dir(new_dirimg)
 
+    # write an error if number of books different of number of images
+    if nb_books != nb_images:
+        logging.error('The number of books(' + str(nb_books) + ") is different from the number of images(" + str(nb_images) + ")")
+    # write a csv in a dataframe
     df_category.to_csv(dirbooks + cat + '.csv', index=False, sep=';', encoding='utf-8')
-    logging.info("end loading category " + cat + " with " + str(nb_books) + " books at " + TimeNow())
+    logging.info("end loading category " + cat + " : " + str(nb_books) + " books and " + str(nb_images) + " images at " +TimeNow())
