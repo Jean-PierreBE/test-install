@@ -52,6 +52,7 @@ des informations concernant :
 - heure de fin de chargement de la catégorie avec le nombre de livres traités et d'images chargées 
 - date et heure de fin du programme
 - erreurs éventuelles rencontrées lors de l'exécution du programme
+
 seront stockées dans le fichier LogWebScrapping.log
 
 
