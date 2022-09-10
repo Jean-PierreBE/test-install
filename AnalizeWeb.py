@@ -176,7 +176,7 @@ def analyze_url_category(cat,url,siteweb,dirbooks,dirimages):
 
     # write an error if number of books different of number of images
     if nb_books != nb_images:
-        logging.error('The number of books(' + str(nb_books) + ") is different from the number of images(" + str(nb_images) + ")")
+        logging.warning('The number of books(' + str(nb_books) + ") is different from the number of images(" + str(nb_images) + ")")
     # write a csv in a dataframe
     df_category.to_csv(dirbooks + cat + '.csv', index=False, sep=';', encoding='utf-8')
     logging.info("end loading category " + cat + " : " + str(nb_books) + " books and " + str(nb_images) + " images at " +TimeNow())
