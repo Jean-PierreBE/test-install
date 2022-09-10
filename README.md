@@ -30,3 +30,28 @@ le projet comporte 4 fichiers
 - mettre au même niveau du répertoire choisi parameters.txt,Projet2OC.py ,AnalizeWeb.py
 - vérifier que les répertoires où stocker les csv et les images existent , sinon les créer (le programme fera un contrôle mais ne les créera pas)
 
+## Lancement du programme
+On peut lancer le programme en tapant sur la ligne de commande de 2 manières :
+- python Projet2OC.py "History" : on ne veut que les livres de la catégorie History
+- python Projet2OC.py "all" : on veut les livres de toutes les catégories
+
+Si on ne met aucun paramètre ou on met une catégorie érronée , un messge d'erreur sera retourné
+De même si le site web à analyser est erroné ou l'une ou l'autre des répertoires de stockage n'existe pas
+
+## Déroulement du programme
+Que l'on sélectionne toutes les catégories ou une , le fonctionnement est similaire.
+Pour chaque catégorie :
+- on parse l'url de chaque livre
+- on stocke les informations demandées dans un tableau
+- on stocke l'image dans un sous-répertoire catégorie du répertoire images
+- une fois tous les livres parsés , on stocke les informations dans un fichier csv
+
+des informations concernant :
+- la date et heure de début du programme
+- heure de début de chargement de la catégorie
+- heure de fin de chargement de la catégorie avec le nombre de livres traités et d'images chargées 
+- date et heure de fin du programme
+- erreurs éventuelles rencontrées lors de l'exécution du programme
+seront stockées dans le fichier LogWebScrapping.log
+
+
