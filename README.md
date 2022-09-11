@@ -18,7 +18,7 @@ les images de chaque livre seront extraites également et stokées dans un répe
 
 ## composition 
 le projet comporte 4 fichiers
-- requirements.txt : contient les packages python necessaires au projet à installer
+- requirements.txt : contient les packages python nécessaires au projet à installer
 - parameters.txt : fichier json contenant l'URL du site à analyser et les répertoires où installer les csv et les images
 - Projet2OC.py : programme à lancer sur la ligne de commande pour exécuter le traitement
 - AnalizeWeb.py : package appellé par le programme ci-dessus pour exécuter le traitement
@@ -35,7 +35,7 @@ On peut lancer le programme en tapant sur la ligne de commande de 2 manières :
 - python Projet2OC.py "History" : on ne veut que les livres de la catégorie History
 - python Projet2OC.py "all" : on veut les livres de toutes les catégories
 
-Si on ne met aucun paramètre ou on met une catégorie érronée , un messge d'erreur sera retourné
+Si on ne met aucun paramètre ou on met une catégorie erronée , un message d'erreur sera retourné.
 De même si le site web à analyser est erroné ou l'une ou l'autre des répertoires de stockage n'existe pas
 
 ## Déroulement du programme
@@ -44,9 +44,9 @@ Pour chaque catégorie :
 - on parse l'url de chaque livre
 - on stocke les informations demandées dans un tableau
 - on stocke l'image dans un sous-répertoire catégorie du répertoire images
-- une fois tous les livres parsés , on stocke les informations dans un fichier csv
+- une fois tous les livres parsés pour une catégorie, on stocke les informations dans un fichier csv
 
-des informations concernant :
+Des informations concernant :
 - la date et heure de début du programme
 - heure de début de chargement de la catégorie
 - heure de fin de chargement de la catégorie avec le nombre de livres traités et d'images chargées 
