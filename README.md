@@ -32,7 +32,7 @@ le projet comporte 4 fichiers
 
 ## Lancement du programme
 On peut lancer le programme en tapant sur la ligne de commande de 2 manières :
-- python Projet2OC.py "History" : on ne veut que les livres de la catégorie History
+- `python Projet2OC.py "History"` : on ne veut que les livres de la catégorie History 
 - python Projet2OC.py "all" : on veut les livres de toutes les catégories
 
 Si on ne met aucun paramètre ou on met une catégorie erronée , un message d'erreur sera retourné.
