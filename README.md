@@ -27,13 +27,14 @@ le projet comporte 4 fichiers
 - choisissez votre répertoire où exécuter vos programmes python
 - créer votre environnement virtuel
 - installer les packages python du fichier requirements.txt
+  -`pip install pandas` par exemple
 - mettre au même niveau du répertoire choisi parameters.txt,Projet2OC.py ,AnalizeWeb.py
 - vérifier que les répertoires où stocker les csv et les images existent , sinon les créer (le programme fera un contrôle mais ne les créera pas)
 
 ## Lancement du programme
 On peut lancer le programme en tapant sur la ligne de commande de 2 manières :
 - `python Projet2OC.py "History"` : on ne veut que les livres de la catégorie History 
-- python Projet2OC.py "all" : on veut les livres de toutes les catégories
+- `python Projet2OC.py "all"` : on veut les livres de toutes les catégories
 
 Si on ne met aucun paramètre ou on met une catégorie erronée , un message d'erreur sera retourné.
 De même si le site web à analyser est erroné ou l'une ou l'autre des répertoires de stockage n'existe pas
